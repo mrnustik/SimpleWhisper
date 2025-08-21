@@ -4,6 +4,7 @@ import threading
 import tkinter as tk
 from tkinter import ttk
 
+import pyperclip
 import numpy as np
 import sounddevice as sd
 import torch
@@ -130,7 +131,9 @@ class MainWindow(tk.Tk):
     def translate_recording(self):
         if self.model is not None and self.filename is not None:
             result = self.model.transcribe(self.filename)
-            self.translated_text.configure(text=result["text"])
+            translated_text = result["text"]
+            pyperclip.copy(translated_text)
+            self.translated_text.configure(text=translated_text)
 
     def on_settings(self, *args):
         w = SettingsWindow(self, 'Settings')
