@@ -1,0 +1,23 @@
+[project]
+name = "simple-whisper"
+version = "0.1.0"
+description = "Simple speech to text file based on Open AI whisper"
+requires-python = ">=3.13"
+dependencies = [
+    "openai-whisper>=20250625",
+    "pynput>=1.8.1",
+    "pyperclip>=1.9.0",
+    "sounddevice>=0.5.2",
+    "soundfile>=0.13.1",
+    "torch>=2.8.0",
+]
+
+[tool.uv.sources]
+torch = [
+    { index = "pytorch-cu128" },
+]
+
+[[tool.uv.index]]
+name = "pytorch-cu128"
+url = "https://download.pytorch.org/whl/cu128"
+explicit = true

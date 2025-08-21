@@ -6,10 +6,9 @@ Provides interface for configuring global hotkeys.
 import tkinter as tk
 from tkinter import ttk, messagebox
 from typing import Dict, Callable, Optional
+
 from pynput import keyboard
 from pynput.keyboard import Key, KeyCode
-import threading
-import time
 
 from GlobalHotkeyManager import HotkeyValidator
 from SettingsManager import SettingsManager
