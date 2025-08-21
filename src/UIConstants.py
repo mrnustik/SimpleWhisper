@@ -56,6 +56,11 @@ class UIConstants:
     HOTKEY_ERROR_MESSAGE = "Failed to register global hotkeys"
     HOTKEY_CONFLICT_MESSAGE = "Hotkey conflict detected"
     
+    # File cleanup messages
+    FILE_CLEANUP_SUCCESS = "Temporary audio file cleaned up"
+    FILE_CLEANUP_ERROR = "Failed to cleanup temporary file"
+    TRANSCRIPTION_FAILED_CLEANUP = "Transcription failed, but temporary file was cleaned up."
+    
     # Colors (for future theming)
     COLOR_RECORDING = "#ff4444"
     COLOR_SUCCESS = "#44aa44" 

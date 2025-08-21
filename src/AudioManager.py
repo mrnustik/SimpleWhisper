@@ -2,6 +2,7 @@ import queue
 import tempfile
 import threading
 import tkinter as tk
+import os
 from typing import Optional, Callable
 import sounddevice as sd
 import soundfile as sf
@@ -251,6 +252,34 @@ class AudioManager:
     def get_current_device(self):
         """Get the current audio device ID."""
         return self.current_device
+
+    def cleanup_audio_file(self, file_path: str) -> bool:
+        """
+        Clean up a temporary audio file.
+        
+        Args:
+            file_path: Path to the audio file to delete
+            
+        Returns:
+            True if cleanup was successful, False otherwise
+        """
+        if not file_path:
+            return True
+            
+        try:
+            if os.path.exists(file_path):
+                os.remove(file_path)
+                print(f"Cleaned up temporary audio file: {file_path}")
+                return True
+            else:
+                print(f"Audio file not found for cleanup: {file_path}")
+                return True  # File doesn't exist, so cleanup is "successful"
+                
+        except Exception as e:
+            print(f"Failed to cleanup audio file {file_path}: {e}")
+            if self.on_error:
+                self._schedule_callback(self.on_error, f"Failed to cleanup temporary file: {str(e)}")
+            return False
 
     def __del__(self):
         """Ensure cleanup on object destruction."""

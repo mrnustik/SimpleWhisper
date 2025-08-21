@@ -34,7 +34,7 @@ class MainWindow(tk.Tk):
         
         # Initialize global hotkeys
         self._setup_global_hotkeys()
-        
+
         # Set initial state
         self._determine_initial_state()
 
@@ -318,13 +318,20 @@ class MainWindow(tk.Tk):
         else:
             self.state_manager.set_state(AppState.NO_AUDIO)
 
-    def on_transcription_complete(self, transcribed_text: str):
+    def on_transcription_complete(self, transcribed_text: str, audio_file_path: str):
         """Callback when transcription is complete."""
-        pyperclip.copy(transcribed_text)
+        # Always clean up the temporary audio file first
+        self.audio_manager.cleanup_audio_file(audio_file_path)
         
-        # Update status with transcription result
-        status_message = f"{UIConstants.STATUS_TRANSCRIPTION_COMPLETE}\n\n{transcribed_text}"
-        self.state_manager.set_state(AppState.READY, status_message)
+        # Only process text if transcription was successful
+        if transcribed_text.strip():
+            pyperclip.copy(transcribed_text)
+            # Update status with transcription result
+            status_message = f"{UIConstants.STATUS_TRANSCRIPTION_COMPLETE}\n\n{transcribed_text}"
+            self.state_manager.set_state(AppState.READY, status_message)
+        else:
+            # Empty text means transcription failed but we still cleaned up the file
+            self.state_manager.set_state(AppState.READY, UIConstants.TRANSCRIPTION_FAILED_CLEANUP)
 
     def on_whisper_error(self, error_message: str):
         """Callback when WhisperManager encounters an error."""

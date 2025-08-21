@@ -6,7 +6,7 @@ import whisper
 
 class WhisperManager:
     def __init__(self, on_model_loaded: Optional[Callable[[str], None]] = None,
-                 on_transcription_complete: Optional[Callable[[str], None]] = None,
+                 on_transcription_complete: Optional[Callable[[str, str], None]] = None,
                  on_error: Optional[Callable[[str], None]] = None):
         self.model: Optional[whisper.Whisper] = None
         self.current_model_name: Optional[str] = None
@@ -14,7 +14,7 @@ class WhisperManager:
         
         # Callbacks for UI updates
         self.on_model_loaded = on_model_loaded
-        self.on_transcription_complete = on_transcription_complete
+        self.on_transcription_complete = on_transcription_complete  # Now receives (text, file_path)
         self.on_error = on_error
 
     @staticmethod
@@ -86,9 +86,15 @@ class WhisperManager:
             transcribed_text = result.get("text", "").strip()
             
             if self.on_transcription_complete:
-                self.on_transcription_complete(transcribed_text)
+                # Pass both the transcribed text and the file path for cleanup
+                self.on_transcription_complete(transcribed_text, audio_file_path)
                 
         except Exception as e:
+            # Even if transcription fails, we should clean up the file
+            if self.on_transcription_complete:
+                # Pass empty text and file path for cleanup
+                self.on_transcription_complete("", audio_file_path)
+                
             if self.on_error:
                 self.on_error(f"Transcription failed: {str(e)}")
 
