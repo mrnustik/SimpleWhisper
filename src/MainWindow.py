@@ -10,12 +10,16 @@ from AudioManager import AudioManager
 from UIConstants import UIConstants
 from UIStateManager import UIStateManager, AppState
 from GlobalHotkeyManager import GlobalHotkeyManager, HotkeyValidator
+from SettingsManager import SettingsManager
 
 
 class MainWindow(tk.Tk):
 
     def __init__(self):
         super().__init__()
+        
+        # Initialize settings manager first
+        self.settings_manager = SettingsManager()
         
         # Initialize state manager
         self.state_manager = UIStateManager(ui_update_callback=self._on_state_changed)
@@ -66,7 +70,7 @@ class MainWindow(tk.Tk):
         
         # Initialize global hotkey manager
         self.hotkey_manager = GlobalHotkeyManager(root=self)
-        self.global_hotkeys_enabled = True
+        self.global_hotkeys_enabled = self.settings_manager.is_global_hotkeys_enabled()
 
     def _create_ui(self):
         """Create and layout all UI components."""
@@ -180,7 +184,7 @@ class MainWindow(tk.Tk):
         # Global hotkey toggle
         self.hotkey_toggle = ttk.Checkbutton(
             self.info_frame,
-            text=f"Global hotkeys ({UIConstants.GLOBAL_HOTKEY_TOGGLE_RECORDING})",
+            text="Global hotkeys",
             command=self._toggle_global_hotkeys
         )
         self.hotkey_toggle.grid(row=0, column=1, sticky="e")
@@ -188,6 +192,9 @@ class MainWindow(tk.Tk):
         # Set initial state
         if self.global_hotkeys_enabled:
             self.hotkey_toggle.state(['selected'])
+        
+        # Update hotkey display
+        self._update_hotkey_display()
 
     def _setup_keyboard_shortcuts(self):
         """Set up keyboard shortcuts."""
@@ -198,11 +205,25 @@ class MainWindow(tk.Tk):
     def _setup_global_hotkeys(self):
         """Set up global hotkeys that work system-wide."""
         try:
-            # Register default global hotkeys
-            self.hotkey_manager.register_default_hotkeys(
-                toggle_callback=self._on_global_toggle_recording,
-                stop_callback=self._on_global_stop_recording
-            )
+            # Register configured global hotkeys
+            hotkeys = self.settings_manager.get_all_hotkeys()
+            
+            toggle_hotkey = hotkeys.get('toggle_recording', '')
+            stop_hotkey = hotkeys.get('stop_recording', '')
+            
+            if toggle_hotkey:
+                self.hotkey_manager.register_hotkey(
+                    'toggle_recording',
+                    toggle_hotkey,
+                    self._on_global_toggle_recording
+                )
+            
+            if stop_hotkey:
+                self.hotkey_manager.register_hotkey(
+                    'stop_recording', 
+                    stop_hotkey,
+                    self._on_global_stop_recording
+                )
             
             # Start listening for global hotkeys
             if self.global_hotkeys_enabled:
@@ -361,16 +382,59 @@ class MainWindow(tk.Tk):
         self.state_manager.set_state(AppState.ERROR, f"Audio error: {error_message}")
 
     def on_settings(self, *args):
-        """Open settings dialog and update audio device."""
+        """Open settings dialog and update audio device and hotkeys."""
         if not self.state_manager.can_change_settings():
             return
             
         try:
-            settings_window = SettingsWindow(self, 'Settings')
+            settings_window = SettingsWindow(
+                self, 
+                settings_manager=self.settings_manager,
+                on_hotkey_change=self._on_hotkey_settings_changed
+            )
+            
+            # Handle audio device change
             if settings_window.result is not None:
                 self.audio_manager.set_device(device_id=settings_window.result)
+                # Save audio device setting
+                self.settings_manager.set_audio_device_id(settings_window.result)
+                
         except Exception as e:
             messagebox.showerror("Settings Error", f"Failed to open settings: {str(e)}")
+    
+    def _update_hotkey_display(self):
+        """Update the hotkey display in the UI."""
+        try:
+            hotkeys = self.settings_manager.get_all_hotkeys()
+            toggle_hotkey = hotkeys.get('toggle_recording', 'Not set')
+            
+            # Update the checkbox text to show current toggle hotkey
+            self.hotkey_toggle.config(text=f"Global hotkeys ({toggle_hotkey})")
+            
+        except Exception as e:
+            print(f"Failed to update hotkey display: {e}")
+            self.hotkey_toggle.config(text="Global hotkeys (Error)")
+    
+    def _on_hotkey_settings_changed(self, new_hotkeys):
+        """Handle changes to hotkey settings."""
+        try:
+            # Stop current hotkey listener
+            self.hotkey_manager.cleanup()
+            
+            # Re-setup global hotkeys with new settings
+            self._setup_global_hotkeys()
+            
+            # Update the hotkey display
+            self._update_hotkey_display()
+            
+            print(f"Global hotkeys updated: {new_hotkeys}")
+            
+        except Exception as e:
+            print(f"Failed to update global hotkeys: {e}")
+            messagebox.showerror(
+                "Hotkey Error", 
+                f"Failed to update global hotkeys: {str(e)}"
+            )
 
     def _toggle_global_hotkeys(self):
         """Toggle global hotkeys on/off."""
@@ -383,6 +447,9 @@ class MainWindow(tk.Tk):
                 # Enable global hotkeys
                 self.hotkey_manager.start_listening()
                 self.global_hotkeys_enabled = True
+            
+            # Save the setting
+            self.settings_manager.set_global_hotkeys_enabled(self.global_hotkeys_enabled)
                 
         except Exception as e:
             # If there's an error, show message and reset checkbox

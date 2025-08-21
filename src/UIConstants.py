@@ -56,6 +56,52 @@ class UIConstants:
     HOTKEY_ERROR_MESSAGE = "Failed to register global hotkeys"
     HOTKEY_CONFLICT_MESSAGE = "Hotkey conflict detected"
     
+    # Settings related constants
+    SETTINGS_FILE_NAME = "settings.json"
+    SETTINGS_WINDOW_TITLE = "Settings"
+    HOTKEY_SETTINGS_WINDOW_TITLE = "Global Hotkey Settings"
+    
+    # Settings dialog messages
+    SETTINGS_AUDIO_TAB = "Audio Device"
+    SETTINGS_HOTKEY_TAB = "Global Hotkeys"
+    SETTINGS_HOTKEY_INSTRUCTIONS = "Configure global hotkeys that work system-wide:"
+    SETTINGS_HOTKEY_NOTE = ("Note: Global hotkeys work even when the application is not in focus. "
+                           "Make sure to choose combinations that don't conflict with other applications.")
+    
+    # Hotkey configuration messages
+    HOTKEY_CAPTURE_BUTTON = "Capture"
+    HOTKEY_STOP_CAPTURE_BUTTON = "Stop"
+    HOTKEY_CLEAR_BUTTON = "Clear"
+    HOTKEY_RESET_BUTTON = "Reset to Defaults"
+    HOTKEY_SAVE_BUTTON = "Save"
+    HOTKEY_CANCEL_BUTTON = "Cancel"
+    
+    HOTKEY_CAPTURE_PROMPT = "Press keys... (ESC to cancel)"
+    HOTKEY_NONE_DISPLAY = "None"
+    HOTKEY_VALIDATION_SUCCESS = "All hotkeys valid"
+    
+    # Hotkey action labels
+    HOTKEY_TOGGLE_RECORDING_LABEL = "Toggle Recording:"
+    HOTKEY_STOP_RECORDING_LABEL = "Stop Recording:"
+    
+    # Settings save/load messages
+    SETTINGS_SAVED_TITLE = "Settings Saved"
+    SETTINGS_SAVED_MESSAGE = "Hotkey settings have been saved successfully."
+    SETTINGS_SAVE_FAILED_TITLE = "Save Failed"
+    SETTINGS_SAVE_FAILED_MESSAGE = "Failed to save hotkey settings. Please try again."
+    SETTINGS_LOAD_FAILED_MESSAGE = "Failed to load settings from file."
+    
+    # Validation messages
+    VALIDATION_INVALID_HOTKEYS_TITLE = "Invalid Hotkeys"
+    VALIDATION_INVALID_HOTKEYS_MESSAGE = "Please fix the validation errors before saving."
+    VALIDATION_DUPLICATE_HOTKEY = "Duplicate hotkey: {}"
+    VALIDATION_EMPTY_HOTKEY = "Hotkey cannot be empty"
+    VALIDATION_RESERVED_HOTKEY = "Hotkey {} is reserved by the system"
+    
+    # Reset confirmation
+    RESET_HOTKEYS_TITLE = "Reset to Defaults"
+    RESET_HOTKEYS_MESSAGE = "Reset all hotkeys to default values?"
+    
     # File cleanup messages
     FILE_CLEANUP_SUCCESS = "Temporary audio file cleaned up"
     FILE_CLEANUP_ERROR = "Failed to cleanup temporary file"
