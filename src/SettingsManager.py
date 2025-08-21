@@ -34,6 +34,9 @@ class SettingsManager:
             "audio": {
                 "device_id": None  # Will use system default
             },
+            "whisper": {
+                "model_download_path": None  # Will use default ~/.cache/whisper
+            },
             "ui": {
                 "global_hotkeys_enabled": True
             }
@@ -191,6 +194,26 @@ class SettingsManager:
             self.settings["ui"] = {}
         
         self.settings["ui"]["global_hotkeys_enabled"] = enabled
+        return self.save_settings()
+    
+    def get_model_download_path(self) -> Optional[str]:
+        """Get configured Whisper model download path."""
+        return self.settings.get("whisper", {}).get("model_download_path")
+    
+    def set_model_download_path(self, path: Optional[str]) -> bool:
+        """
+        Set Whisper model download path.
+        
+        Args:
+            path: Path to store downloaded models (None for default)
+            
+        Returns:
+            True if path was set successfully
+        """
+        if "whisper" not in self.settings:
+            self.settings["whisper"] = {}
+        
+        self.settings["whisper"]["model_download_path"] = path
         return self.save_settings()
     
     def get_setting(self, category: str, key: str, default: Any = None) -> Any:

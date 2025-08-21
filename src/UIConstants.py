@@ -64,9 +64,13 @@ class UIConstants:
     # Settings dialog messages
     SETTINGS_AUDIO_TAB = "Audio Device"
     SETTINGS_HOTKEY_TAB = "Global Hotkeys"
+    SETTINGS_WHISPER_TAB = "Whisper Models"
     SETTINGS_HOTKEY_INSTRUCTIONS = "Configure global hotkeys that work system-wide:"
     SETTINGS_HOTKEY_NOTE = ("Note: Global hotkeys work even when the application is not in focus. "
                            "Make sure to choose combinations that don't conflict with other applications.")
+    SETTINGS_WHISPER_INSTRUCTIONS = "Configure Whisper model storage location:"
+    SETTINGS_WHISPER_NOTE = ("Leave blank to use the default location (~/.cache/whisper). "
+                            "Choose a custom path to store models in a specific directory.")
     
     # Hotkey configuration messages
     HOTKEY_CAPTURE_BUTTON = "Capture"

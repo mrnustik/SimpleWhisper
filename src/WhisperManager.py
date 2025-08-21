@@ -3,14 +3,18 @@ from typing import Optional, Callable, Dict, Any
 import torch
 import whisper
 
+from SettingsManager import SettingsManager
+
 
 class WhisperManager:
     def __init__(self, on_model_loaded: Optional[Callable[[str], None]] = None,
                  on_transcription_complete: Optional[Callable[[str, str], None]] = None,
-                 on_error: Optional[Callable[[str], None]] = None):
+                 on_error: Optional[Callable[[str], None]] = None,
+                 settings_manager: Optional[SettingsManager] = None):
         self.model: Optional[whisper.Whisper] = None
         self.current_model_name: Optional[str] = None
         self.loading = False
+        self.settings_manager = settings_manager
         
         # Callbacks for UI updates
         self.on_model_loaded = on_model_loaded
@@ -47,9 +51,10 @@ class WhisperManager:
     def _load_model_worker(self, model_name: str) -> None:
         """Worker method to load model in background thread."""
         try:
-            self.model = whisper.load_model(model_name)
-            self.current_model_name = model_name
+            download_root = self.settings_manager.get_model_download_path()
+            self.model = whisper.load_model(model_name, download_root=download_root)
 
+            self.current_model_name = model_name
             self.loading = False
 
             if self.on_model_loaded:

@@ -57,7 +57,8 @@ class MainWindow(tk.Tk):
         self.whisper_manager = WhisperManager(
             on_model_loaded=self.on_model_loaded,
             on_transcription_complete=self.on_transcription_complete,
-            on_error=self.on_whisper_error
+            on_error=self.on_whisper_error,
+            settings_manager=self.settings_manager
         )
         
         self.audio_manager = AudioManager(
