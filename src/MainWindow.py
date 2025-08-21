@@ -1,16 +1,12 @@
-import queue
-import tempfile
-import threading
 import tkinter as tk
 from tkinter import messagebox
 from tkinter import ttk
 
 import pyperclip
-import sounddevice as sd
 
 from SettingsWindow import SettingsWindow
 from WhisperManager import WhisperManager
-from sound_file_writer import sound_file_writer
+from AudioManager import AudioManager
 
 
 class MainWindow(tk.Tk):
@@ -18,8 +14,6 @@ class MainWindow(tk.Tk):
     def __init__(self):
         super().__init__()
 
-        self.filename = None
-        self.stream = None
         self.title('Simple Whisper')
         
         # Initialize WhisperManager with callbacks
@@ -27,6 +21,15 @@ class MainWindow(tk.Tk):
             on_model_loaded=self.on_model_loaded,
             on_transcription_complete=self.on_transcription_complete,
             on_error=self.on_whisper_error
+        )
+        
+        # Initialize AudioManager with callbacks
+        self.audio_manager = AudioManager(
+            on_recording_started=self.on_recording_started,
+            on_recording_stopped=self.on_recording_stopped,
+            on_file_ready=self.on_file_ready,
+            on_error=self.on_audio_error,
+            root=self
         )
 
         padding = 10
@@ -58,11 +61,6 @@ class MainWindow(tk.Tk):
         self.model_select = ttk.Button(text="Select model", command=self.on_select_model)
         self.model_select.pack(side='right', padx=padding, pady=padding)
 
-        self.create_stream()
-
-        self.recording = self.previously_recording = False
-        self.audio_q = queue.Queue()
-
         self.protocol('WM_DELETE_WINDOW', self.close_window)
         self.init_buttons()
 
@@ -93,87 +91,56 @@ class MainWindow(tk.Tk):
         self.model_select['state'] = 'normal'
         self.init_buttons()
 
-    def create_stream(self, device=None):
-        if self.stream is not None:
-            self.stream.close()
-        self.stream = sd.InputStream(
-            device=device, channels=1, callback=self.audio_callback)
-        self.stream.start()
-
-    def audio_callback(self, indata, frames, time, status):
-        if self.recording:
-            self.audio_q.put(indata.copy())
-            self.previously_recording = True
-        else:
-            if self.previously_recording:
-                self.audio_q.put(None)
-                self.previously_recording = False
-
-    def on_rec(self):
-        self.settings_button['state'] = 'disabled'
-        self.recording = True
-
-        self.filename = tempfile.mktemp(
-            prefix='delme_rec_gui_', suffix='.wav', dir='')
-
-        if self.audio_q.qsize() != 0:
-            print('WARNING: Queue not empty!')
-        self.thread = threading.Thread(
-            target=sound_file_writer,
-            kwargs=dict(
-                file=self.filename,
-                mode='x',
-                samplerate=int(self.stream.samplerate),
-                channels=self.stream.channels,
-                q=self.audio_q,
-            ),
-        )
-        self.thread.start()
-
+    def on_recording_started(self):
+        """Callback when AudioManager starts recording."""
         self.record_button['text'] = 'stop'
         self.record_button['command'] = self.on_stop
         self.record_button['state'] = 'normal'
+        self.settings_button['state'] = 'disabled'
 
-    def on_stop(self, *args):
+    def on_recording_stopped(self):
+        """Callback when AudioManager stops recording."""
         self.record_button['state'] = 'disabled'
-        self.recording = False
-        self.wait_for_thread()
 
-    def wait_for_thread(self):
-        self.after(10, self._wait_for_thread)
+    def on_file_ready(self, filename: str):
+        """Callback when AudioManager has audio file ready for transcription."""
+        self.init_buttons()
+        if self.whisper_manager.is_model_loaded():
+            self.translated_text.configure(text="Transcribing...")
+            self.whisper_manager.transcribe_async(filename)
+        else:
+            messagebox.showwarning("No Model", "Please load a model before recording.")
 
-    def _wait_for_thread(self):
-        if self.thread.is_alive():
-            self.wait_for_thread()
-            return
-        self.thread.join()
-        self.translate_recording()
+    def on_audio_error(self, error_message: str):
+        """Callback when AudioManager encounters an error."""
+        messagebox.showerror("Audio Error", error_message)
         self.init_buttons()
 
-    def translate_recording(self):
-        if self.whisper_manager.is_model_loaded() and self.filename is not None:
-            self.translated_text.configure(text="Transcribing...")
-            self.whisper_manager.transcribe_async(self.filename)
-        elif not self.whisper_manager.is_model_loaded():
-            messagebox.showwarning("No Model", "Please load a model before recording.")
-        else:
-            messagebox.showerror("No Recording", "No audio file to transcribe.")
+    def on_rec(self):
+        """Start recording using AudioManager."""
+        self.audio_manager.start_recording()
+
+    def on_stop(self, *args):
+        """Stop recording using AudioManager."""
+        self.audio_manager.stop_recording()
 
     def on_settings(self, *args):
+        """Open settings dialog and update audio device."""
         w = SettingsWindow(self, 'Settings')
         if w.result is not None:
-            self.create_stream(device=w.result)
+            self.audio_manager.set_device(device_id=w.result)
 
     def init_buttons(self):
+        """Initialize button states based on system readiness."""
         self.record_button['text'] = 'record'
         self.record_button['command'] = self.on_rec
-        if self.stream and self.whisper_manager.is_model_loaded():
+        if self.audio_manager.is_ready() and self.whisper_manager.is_model_loaded():
             self.record_button['state'] = 'normal'
         else:
             self.record_button['state'] = 'disabled'
         self.settings_button['state'] = 'normal'
 
     def close_window(self):
-        if self.recording:
-            self.on_stop()
+        """Clean shutdown of the application."""
+        self.audio_manager.cleanup()
         self.destroy()
