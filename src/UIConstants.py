@@ -41,10 +41,20 @@ class UIConstants:
     DIALOG_AUDIO_ERROR_TITLE = "Audio Error"
     DIALOG_NO_MODEL_FOR_RECORDING = "Please load a model before recording."
     
-    # Keyboard shortcuts
+    # Keyboard shortcuts (local - when app has focus)
     SHORTCUT_RECORD = "<Control-r>"
     SHORTCUT_STOP = "<Control-s>"
     SHORTCUT_SETTINGS = "<Control-t>"
+    
+    # Global hotkeys (system-wide - work when app is not in focus)
+    GLOBAL_HOTKEY_TOGGLE_RECORDING = "<ctrl>+<shift>+r"
+    GLOBAL_HOTKEY_STOP_RECORDING = "<ctrl>+<shift>+s"
+    
+    # Hotkey related messages
+    HOTKEY_ENABLED_STATUS = "Global hotkeys enabled"
+    HOTKEY_DISABLED_STATUS = "Global hotkeys disabled"
+    HOTKEY_ERROR_MESSAGE = "Failed to register global hotkeys"
+    HOTKEY_CONFLICT_MESSAGE = "Hotkey conflict detected"
     
     # Colors (for future theming)
     COLOR_RECORDING = "#ff4444"
