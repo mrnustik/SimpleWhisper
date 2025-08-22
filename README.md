@@ -17,6 +17,8 @@ A Python GUI application for speech-to-text transcription using OpenAI's Whisper
 
 - Python 3.9+
 - Audio input device (microphone)
+- [CUDA 12.8 Toolkit](https://developer.nvidia.com/cuda-12-8-0-download-archive)
+- [ffmpeg installation](https://ffmpeg.org/)
 
 ## Installation and Usage
 
